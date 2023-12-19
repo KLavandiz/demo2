@@ -1,0 +1,51 @@
+version: '3'
+
+services:
+
+    ####################################################################################################
+    # PHP
+    ####################################################################################################
+    php:
+        container_name: product_php
+        build:
+            context: ../docker/product-service/php/
+            dockerfile: Dockerfile
+        volumes:
+            - .:/var/www:cached
+
+    ####################################################################################################
+    # Nginx
+    ####################################################################################################
+    nginx:
+        build:
+            context: ../docker/product-service/nginx/
+            dockerfile: Dockerfile
+        container_name: product_nginx
+        ports:
+            - 86:80
+        volumes:
+            - .:/var/www
+        depends_on:
+            - php
+
+    ####################################################################################################
+    # DATABASE (MySQL)
+    ####################################################################################################
+    db:
+        container_name: product_mysql
+        image: mysql:8.2.0
+        ports:
+            - 3310:3306
+        volumes:
+            - ../docker/product-service/db/data:/var/lib/mysql
+            - ../docker/product-service/logs:/var/log/mysql
+            - ../docker/product-service/db/my.cnf:/etc/mysql/conf.d/my.cnf
+            - ../docker/product-service/db/sql:/docker-entrypoint-initdb.d
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: product_db_name
+            MYSQL_USER: product_db_user
+            MYSQL_PASSWORD: product_db_pass
+
+
+
